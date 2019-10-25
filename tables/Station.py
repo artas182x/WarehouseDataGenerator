@@ -1,6 +1,3 @@
-import random
-
-
 class Station:
 
     def __init__(self, id, faker, *, capacity, radius):
