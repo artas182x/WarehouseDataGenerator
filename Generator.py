@@ -9,10 +9,12 @@ from faker import Faker
 import random
 
 
-# diff - specifies hours loop should skip. Diff 24 means that loop will iterate every each day
-def datarange(start_date, end_date, diff=24):
-    for n in range(int((end_date - start_date).days * 24 - diff)):
-        yield start_date + timedelta(hours=n + diff)
+# diff - specifies hours loop should skip. Diff 60 means that loop will iterate every each hour
+def datarange(start_date, end_date, diff=24*60):
+    start = start_date
+    while start < end_date:
+        start = start + timedelta(minutes=diff)
+        yield start
 
 
 class Generator:
@@ -70,7 +72,9 @@ class Generator:
             names.append(self.faker.first_name())
             surnames.append(self.faker.last_name())
 
-        for single_date in datarange(self.config.START_DATE, self.config.END_DATE, diff=7):
+        diff = int((self.config.END_DATE - self.config.START_DATE).days * 24 * 60/self.config.MAX_WORK_HISTORY_ENTRIES)
+
+        for single_date in datarange(self.config.START_DATE, self.config.END_DATE, diff=diff):
             rand_index = random.randint(0, workers-1)
             self.work_history.append(WorkHistory(names[rand_index], surnames[rand_index], single_date, single_date +
                                                  timedelta(hours=7)))
