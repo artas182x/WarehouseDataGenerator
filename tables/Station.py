@@ -7,3 +7,9 @@ class Station:
         self.capacity = capacity
         self.latitude = faker.coordinate(center=54.324846, radius=radius)
         self.longitude = faker.coordinate(center=18.636886, radius=radius)
+
+        # FLAGS
+
+        self.rarely_visited = False
+        self.overloaded = False
+        self.workplace = False

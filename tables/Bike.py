@@ -4,3 +4,5 @@ class Bike:
 
         self.id = id
         self.friendlyname = faker.first_name()
+
+        self.current_location = 0;
