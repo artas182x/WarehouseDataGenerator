@@ -11,6 +11,7 @@ class Simulator:
         self.generator.generate_clients()
         self.generator.init_bikes_location()
         self.generator.init_station_states()
+        self.generator.generate_work_history()
 
    # def simulate_day(self, day, is_workday):
     #    for hour in range(24):
