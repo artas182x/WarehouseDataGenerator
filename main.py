@@ -1,5 +1,5 @@
-from Generator import Generator
 from Config import Config
+from Simulator import Simulator
 from datetime import date
 
 # TODO What we need:
@@ -22,9 +22,8 @@ if __name__ == "__main__":
 
     config1 = Config(start_date=T1, end_date=T2)
 
-    generator = Generator(config1)
+    simulator1 = Simulator(config1)
+    pass
 
-    generator.generate_bikes()
-    generator.generate_stations()
-    generator.generate_clients()
+
 
