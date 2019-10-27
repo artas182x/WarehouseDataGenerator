@@ -1,5 +1,5 @@
-from Config import Config
-from Simulator import Simulator
+from config import Config
+from simulator import Simulator
 from datetime import date
 
 # TODO What we need:
@@ -24,6 +24,3 @@ if __name__ == "__main__":
 
     simulator1 = Simulator(config1)
     pass
-
-
-

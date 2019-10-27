@@ -1,5 +1,5 @@
-from Generator import Generator
-from Config import Config
+from generator import Generator
+from config import Config
 
 
 class Simulator:
@@ -13,8 +13,6 @@ class Simulator:
         self.generator.init_station_states()
         self.generator.generate_work_history()
 
-   # def simulate_day(self, day, is_workday):
-    #    for hour in range(24):
 
-
-
+# def simulate_day(self, day, is_workday):
+#    for hour in range(24):
