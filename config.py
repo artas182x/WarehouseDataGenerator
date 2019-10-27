@@ -18,6 +18,6 @@ class Config:
 
         self.DAYS = abs((end_date - start_date).days)
         self.STATION_STATES_ENTRIES = self.DAYS * 24
-        self.RENTAL_ENTRIES_PER_DAY = int(self.MAX_RENTAL_ENTRIES/self.DAYS)
-        self.REPAIR_ENTRIES_PER_DAY = int(self.MAX_REPAIR_ENTRIES/self.DAYS)
-        self.SERVICE_ENTRIES_PER_DAY = int(self.MAX_REPAIR_ENTRIES/self.DAYS)
+        self.RENTAL_ENTRIES_PER_DAY = int(self.MAX_RENTAL_ENTRIES / self.DAYS)
+        self.REPAIR_ENTRIES_PER_DAY = int(self.MAX_REPAIR_ENTRIES / self.DAYS)
+        self.SERVICE_ENTRIES_PER_DAY = int(self.MAX_REPAIR_ENTRIES / self.DAYS)
