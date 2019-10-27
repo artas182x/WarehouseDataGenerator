@@ -4,6 +4,7 @@ from models.station import Station
 from models.station_state import StationState
 from models.work_history import WorkHistory
 from models.rental_history import RentalHistory
+from models.service_history import ServiceHistory
 from datetime import timedelta
 from faker import Faker
 import random
@@ -27,12 +28,13 @@ class Generator:
         self.station_states = []
         self.work_history = []
         self.rental_history = []
+        self.service_history = []
 
     def simulation(self):
         print("Simulating business process")
-        self.simulate_hour(False, self.config.START_DATE, 30)
+        self.simulate_hour(False, self.config.START_DATE, 30, 3, 3)
 
-    def simulate_hour(self, is_workday, date, rental_number):
+    def simulate_hour(self, is_workday, date, rental_number, service_number, broken_bikes_number):
 
         # We will clone station states to new hour so we can update it during simulation
         previous_hour_states = [
@@ -47,6 +49,7 @@ class Generator:
 
         # We will use local history entries and commit them to global database to avoid logical conflicts
         local_history_entries = []
+        local_service_history = []
 
         for i in range(rental_number):
 
@@ -78,7 +81,35 @@ class Generator:
 
             local_history_entries.append(rental_history_entry)
 
-        # Updating station states after al rentals
+        for i in range(service_number):
+
+            # Choose station with the most number of bikes
+            most_frequent_station = sorted([
+                x
+                for x in self.station_states
+                if x.date == self.station_states[-1].date and x.free_bikes > 0
+            ], key=lambda z: z.free_bikes, reverse=True)[0]
+
+            bike = random.choice([
+                x
+                for x in self.bikes
+                if x.current_location == most_frequent_station.station_id
+            ])
+
+            most_frequent_station.free_bikes -= 1
+            bike.current_location = 0
+
+            least_frequent_station = sorted([
+                x
+                for x in self.station_states
+                if x.date == self.station_states[-1].date and x.free_bikes > 0
+            ], key=lambda z: z.free_bikes)[0]
+
+            local_service_history.append(ServiceHistory(most_frequent_station.station_id,
+                                                        least_frequent_station.station_id,
+                                                        date + timedelta(minutes=random.randint(0, 59)), bike.id))
+
+        # Updating station states after all operations
         for i in range(rental_number):
 
             for entry in local_history_entries:
@@ -96,6 +127,22 @@ class Generator:
                 station_state.free_bikes += 1
                 bike.current_location = entry.end_station_id
 
+            for entry in local_service_history:
+                station_state = [
+                    x
+                    for x in self.station_states
+                    if x.date == self.station_states[-1].date and x.station_id == entry.end_station_id
+                ][0]
+                bike = [
+                    x
+                    for x in self.bikes
+                    if x.id == entry.bike_id
+                ][0]
+
+                station_state.free_bikes += 1
+                bike.current_location = entry.end_station_id
+
+        self.service_history.extend(local_service_history)
         self.rental_history.extend(local_history_entries)
 
 
