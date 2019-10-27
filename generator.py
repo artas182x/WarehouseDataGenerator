@@ -3,6 +3,7 @@ from models.bike import Bike
 from models.station import Station
 from models.station_state import StationState
 from models.work_history import WorkHistory
+from models.rental_history import RentalHistory
 from datetime import timedelta
 from faker import Faker
 import random
@@ -25,6 +26,78 @@ class Generator:
         self.stations = []
         self.station_states = []
         self.work_history = []
+        self.rental_history = []
+
+    def simulation(self):
+        print("Simulating business process")
+        self.simulate_hour(False, self.config.START_DATE, 30)
+
+    def simulate_hour(self, is_workday, date, rental_number):
+
+        # We will clone station states to new hour so we can update it during simulation
+        previous_hour_states = [
+            x
+            for x in self.station_states
+            if x.date == self.station_states[-1].date
+        ]
+        for x in previous_hour_states:
+            x.date = x.date + timedelta(hours=1)
+
+        self.station_states.extend(previous_hour_states)
+
+        # We will use local history entries and commit them to global database to avoid logical conflicts
+        local_history_entries = []
+
+        for i in range(rental_number):
+
+            starting_stations = [
+                x
+                for x in self.station_states
+                if x.date == self.station_states[-1].date and x.free_bikes > 0
+            ]
+
+            start_station = random.choice(starting_stations)
+            end_station = random.choice(self.stations)
+
+            bike = random.choice([
+                x
+                for x in self.bikes
+                if x.current_location == start_station.station_id
+            ])
+
+            client = random.choice(self.clients)
+
+            # Start renting
+            start_station.free_bikes -= 1
+            bike.current_location = 0
+            rental_start_date = date + timedelta(minutes=random.randint(0, 30))
+            rental_end_date = rental_start_date + timedelta(minutes=random.randint(5, 29))
+
+            rental_history_entry = RentalHistory(client.id, start_station.id, end_station.id, bike.id,
+                                                 rental_start_date, rental_end_date)
+
+            local_history_entries.append(rental_history_entry)
+
+        # Updating station states after al rentals
+        for i in range(rental_number):
+
+            for entry in local_history_entries:
+                station_state = [
+                    x
+                    for x in self.station_states
+                    if x.date == self.station_states[-1].date and x.station_id == entry.end_station_id
+                ][0]
+                bike = [
+                    x
+                    for x in self.bikes
+                    if x.id == entry.bike_id
+                ][0]
+
+                station_state.free_bikes += 1
+                bike.current_location = entry.end_station_id
+
+        self.rental_history.extend(local_history_entries)
+
 
     def generate_clients(self):
         print("Generating clients")
@@ -86,14 +159,6 @@ class Generator:
                 )
             )
 
-    def init_bikes_location(self):
-        print("Initializing bikes")
-        if len(self.stations) == 0:
-            raise ValueError("Stations list must be initialised first")
-
-        for bike in self.bikes:
-            bike.current_location = random.choice(self.stations).id
-
     def init_station_states(self):
         print("Initializing stations states")
         # Generate empty first station states
@@ -112,6 +177,8 @@ class Generator:
                 for x in self.station_states
                 if x.date == self.config.START_DATE and x.station_id == curr_station.id
             ][0]
+
+            el.free_bikes += 1
 
 
 # TODO repair history, service history

@@ -9,9 +9,9 @@ class Simulator:
         self.generator.generate_bikes()
         self.generator.generate_stations()
         self.generator.generate_clients()
-        self.generator.init_bikes_location()
         self.generator.init_station_states()
         self.generator.generate_work_history()
+        self.generator.simulation()
 
 
 # def simulate_day(self, day, is_workday):
