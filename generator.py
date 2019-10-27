@@ -28,11 +28,11 @@ class Generator:
 
     def generate_clients(self):
         print("Generating clients")
-        self.clients = [Client() for _ in range(self.config.MAX_CLIENTS)]
+        self.clients = [Client(self.faker) for _ in range(self.config.MAX_CLIENTS)]
 
     def generate_bikes(self):
         print("Generating bikes")
-        self.bikes = [Bike() for _ in range(self.config.MAX_BIKES)]
+        self.bikes = [Bike(self.faker) for _ in range(self.config.MAX_BIKES)]
 
     def generate_stations(self, offset=0):
         print("Generating stations")
@@ -41,7 +41,7 @@ class Generator:
         max_capacity = int(1.3 * avg_capacity)
 
         self.stations = [
-            Station(capacity=random.randint(min_capacity, max_capacity), radius=0.85)
+            Station(capacity=random.randint(min_capacity, max_capacity), radius=0.85, faker=self.faker)
             for _ in range(self.config.MAX_STATIONS)
         ]
 
@@ -75,7 +75,7 @@ class Generator:
         for index, single_date in enumerate(
             datarange(self.config.START_DATE, self.config.END_DATE, diff=7)
         ):
-            rand_index = random.randint(0, workers)
+            rand_index = random.randrange(workers)
             self.work_history.append(
                 WorkHistory(
                     id=index,

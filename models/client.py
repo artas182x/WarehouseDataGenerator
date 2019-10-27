@@ -14,7 +14,9 @@ class Gender(Enum):
 
 
 class Client(BaseModel):
-    def __init__(self):
+    def __init__(self, faker):
+
+        self.faker = faker
 
         super().__init__()
         self.gender = Gender.get_gender()
@@ -34,6 +36,6 @@ class Client(BaseModel):
     def _generate_surname(self):
         return (
             self.faker.last_name_male()
-            if self.gender == Gender.M
+            if self.gender == Gender.MALE
             else self.faker.last_name_female()
         )
