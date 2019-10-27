@@ -1,9 +1,10 @@
-from config import Config
-from simulator import Simulator
 from datetime import date
 
+from config import Config
+from simulator import Simulator
+
 # TODO What we need:
-# At least one station which became not used from T2 to T3 comparing to T1 to T2 time. rerely_used flag
+# At least one station which became not used from T2 to T3 comparing to T1 to T2 time. rarely_used flag
 # Some stations should be overloaded
 # Bike repair times should be different in T1 and T2
 # Broken bikes number should be different in T1 and T2

@@ -3,7 +3,13 @@ from models.base import BaseModel
 
 class Station(BaseModel):
     def __init__(
-        self, capacity, radius, faker, rarely_visited=False, overloaded=False, workplace=False
+            self,
+            capacity,
+            radius,
+            faker,
+            rarely_visited=False,
+            overloaded=False,
+            workplace=False,
     ):
         super().__init__()
         self.faker = faker
