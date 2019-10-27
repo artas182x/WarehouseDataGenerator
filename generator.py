@@ -47,6 +47,8 @@ class Generator:
             number_of_bikes_serviced=3,
             number_of_bikes_broken=3,
         )
+
+
         # We will clone station states to new hour so we can update it during simulation
         previous_hour_states = self._get_previous_hour_states()
         for x in previous_hour_states:
@@ -79,7 +81,6 @@ class Generator:
         number = random.randint(0,10)
         return State.WONT_REPAIR if 0.1*number < probability_of_total_damage \
             else State.REPAIRED
-
 
     def simulate_hour(
             self,
@@ -123,13 +124,13 @@ class Generator:
 
         for _ in range(number_of_bikes_serviced):
             # Choose station with the most number of bikes
-            most_frequent_station = self._get_sorted_stations(reverse=True)[0]
+            most_frequent_station = self._get_used_by_employees_station_states(reverse=True)[0]
             bike = random.choice(
                 self._get_bikes_at_station(most_frequent_station.station_id)
             )
             most_frequent_station.free_bikes -= 1
             bike.current_location = None
-            least_frequent_station = self._get_sorted_stations(reverse=False)[0]
+            least_frequent_station = self._get_used_by_employees_station_states(reverse=False)[0]
             local_service_histories.append(
                 ServiceHistory(
                     most_frequent_station.station_id,
@@ -157,7 +158,7 @@ class Generator:
 
             repair_history_entry_finish = RepairHistory(self.last_repair_history_index, bike.id, workshop_name,
                                                         repair_finish_state, repair_history_entry.date +
-                                                        timedelta(minutes=random.randint(40, 59)))
+                                                        timedelta(minutes=random.randint(40, self.config.BIKE_REPAIR_TIME)))
 
             self.last_repair_history_index += 1
 
@@ -206,6 +207,23 @@ class Generator:
         self.rental_history.extend(local_rental_histories)
         self.repair_history.extend(local_repair_history)
 
+    def _get_used_by_employees_station_states(self, reverse):
+        used_stations = [x for x in self.stations if x.rarely_visited]
+
+        return sorted(
+            [x for x in self.station_states if x.date == self._get_latest_hour() and
+             self._station_exist_in_list(x.station_id, used_stations)],
+            key=lambda z: z.free_bikes,
+            reverse=reverse,
+        )
+
+    def _station_exist_in_list(self, id, list):
+        for x in list:
+            if x.id == id:
+                return True
+
+        return False
+
     def _get_sorted_stations(self, reverse):
         return sorted(
             [x for x in self.station_states if x.date == self._get_latest_hour()],
@@ -220,6 +238,20 @@ class Generator:
     def generate_bikes(self):
         print("Generating bikes")
         self.bikes = [Bike(self.faker) for _ in range(self.config.MAX_BIKES)]
+
+    def mark_some_stations_as_rarely_visited(self):
+        # Some rarely visited stations
+        for i in range(1, 5):
+            self.stations[
+                random.randint(0, self.config.MAX_STATIONS - 1)
+            ].rarely_visited = True
+
+    def mark_some_stations_as_not_used(self):
+        # Some not used in T2 stations
+        for i in range(1, 5):
+            self.stations[
+                random.randint(0, self.config.MAX_STATIONS - 1)
+            ].became_not_used = True
 
     def generate_stations(self, offset=0):
         print("Generating stations")
@@ -236,11 +268,8 @@ class Generator:
             for _ in range(self.config.MAX_STATIONS)
         ]
 
-        # Some rarely visited stations
-        for i in range(1, 5):
-            self.stations[
-                random.randint(0, self.config.MAX_STATIONS - 1)
-            ].rarely_visited = True
+        self.mark_some_stations_as_rarely_visited()
+        self.mark_some_stations_as_not_used()
 
         # Mark some stations as workplaces
         for i in range(1, int(self.config.MAX_STATIONS * 0.2)):

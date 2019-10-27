@@ -16,6 +16,9 @@ class Config:
         self.START_DATE = datetime.combine(start_date, datetime.min.time())
         self.END_DATE = datetime.combine(end_date, datetime.min.time())
 
+        self.BIKE_REPAIR_TIME = 55
+        self.STATIONS_THAT_BECAME_NOT_USED = True
+
         self.DAYS = abs((end_date - start_date).days)
         self.STATION_STATES_ENTRIES = self.DAYS * 24
         self.RENTAL_ENTRIES_PER_DAY = int(self.MAX_RENTAL_ENTRIES / self.DAYS)
