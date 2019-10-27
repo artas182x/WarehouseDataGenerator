@@ -10,6 +10,9 @@ from models.service_history import ServiceHistory
 from models.station import Station
 from models.station_state import StationState
 from models.work_history import WorkHistory
+from models.repair_history import RepairHistory
+from models.repair_history import State
+from models.repair_history import _get_random_workshop_name
 
 
 # TODO change to use python daterange
@@ -31,6 +34,9 @@ class Generator:
         self.work_history = []
         self.rental_history = []
         self.service_history = []
+        self.repair_history = []
+
+        self.last_repair_history_index = 1
 
     def simulation(self):
         print("Simulating business process")
@@ -39,7 +45,7 @@ class Generator:
             start_date=self.config.START_DATE,
             number_of_rented_bikes=30,
             number_of_bikes_serviced=3,
-            broken_bikes_number=3,
+            number_of_bikes_broken=3,
         )
         # We will clone station states to new hour so we can update it during simulation
         previous_hour_states = self._get_previous_hour_states()
@@ -63,18 +69,32 @@ class Generator:
     def _get_bikes_at_station(self, station_id):
         return [x for x in self.bikes if x.current_location == station_id]
 
+    def _get_last_station_state_by_station_id(self, station_id):
+        return [x for x in self.station_states if x.station_id == station_id and x.date == self._get_latest_hour()][0]
+
+    def _get_not_used_bikes(self):
+        return [x for x in self.bikes if x.current_location is not None]
+
+    def _generate_bike_repair_finish_state(self, probability_of_total_damage):
+        number = random.randint(0,10)
+        return State.WONT_REPAIR if 0.1*number < probability_of_total_damage \
+            else State.REPAIRED
+
+
     def simulate_hour(
             self,
             is_workday,
             start_date,
             number_of_rented_bikes,
             number_of_bikes_serviced,
-            broken_bikes_number,
+            number_of_bikes_broken,
     ):
         # We will use local history entries and commit them to global database to avoid logical conflicts
         local_rental_histories = []
         local_service_histories = []
-        for i in range(number_of_rented_bikes):
+        local_repair_history = []
+
+        for _ in range(number_of_rented_bikes):
             # this needs to be refreshed because station can have 0 free bikes
             starting_stations_states = self._get_starting_stations_states()
             start_station_state = random.choice(starting_stations_states)
@@ -101,7 +121,7 @@ class Generator:
             )
             local_rental_histories.append(rental_history_entry)
 
-        for i in range(number_of_bikes_serviced):
+        for _ in range(number_of_bikes_serviced):
             # Choose station with the most number of bikes
             most_frequent_station = self._get_sorted_stations(reverse=True)[0]
             bike = random.choice(
@@ -119,32 +139,72 @@ class Generator:
                 )
             )
 
-        # Updating station states after all operations
-        for i in range(number_of_rented_bikes):
-            for rental in local_rental_histories:
-                station_state = [
-                    x
-                    for x in self.station_states
-                    if x.date == self._get_latest_hour()
-                       and x.station_id == rental.end_station_id
-                ][0]
-                bike = [x for x in self.bikes if x.id == rental.bike_id][0]
-                station_state.free_bikes += 1
-                bike.current_location = rental.end_station_id
+        for _ in range(number_of_bikes_broken):
+            bike = random.choice(self._get_not_used_bikes())
+            station_state = self._get_last_station_state_by_station_id(bike.current_location)
 
-            for rental in local_service_histories:
-                station_state = [
-                    x
-                    for x in self.station_states
-                    if x.date == self._get_latest_hour()
-                       and x.station_id == rental.end_station_id
-                ][0]
-                bike = [x for x in self.bikes if x.id == rental.bike_id][0]
-                station_state.free_bikes += 1
-                bike.current_location = rental.end_station_id
+            station_state.free_bikes -= 1
+            bike.current_location = None
+
+            workshop_name = _get_random_workshop_name()
+
+            repair_history_entry = RepairHistory(self.last_repair_history_index, bike.id, workshop_name, State.REPAIR,
+                                                 start_date + timedelta(minutes=random.randint(0, 5)))
+
+            self.last_repair_history_index += 1
+
+            repair_finish_state = self._generate_bike_repair_finish_state(probability_of_total_damage=0.05)
+
+            repair_history_entry_finish = RepairHistory(self.last_repair_history_index, bike.id, workshop_name,
+                                                        repair_finish_state, repair_history_entry.date +
+                                                        timedelta(minutes=random.randint(40, 59)))
+
+            self.last_repair_history_index += 1
+
+            local_repair_history.append(repair_history_entry)
+            local_repair_history.append(repair_history_entry_finish)
+
+
+        # Updating station states after all operations
+        for rental in local_rental_histories:
+            station_state = [
+                x
+                for x in self.station_states
+                if x.date == self._get_latest_hour()
+                    and x.station_id == rental.end_station_id
+            ][0]
+            bike = [x for x in self.bikes if x.id == rental.bike_id][0]
+            station_state.free_bikes += 1
+            bike.current_location = rental.end_station_id
+
+        for rental in local_service_histories:
+            station_state = [
+                x
+                for x in self.station_states
+                if x.date == self._get_latest_hour()
+                    and x.station_id == rental.end_station_id
+            ][0]
+            bike = [x for x in self.bikes if x.id == rental.bike_id][0]
+            station_state.free_bikes += 1
+            bike.current_location = rental.end_station_id
+
+        for repair in local_repair_history:
+            bikes_repaired = [x for x in self.bikes if x.id == repair.bike_id and repair.state == State.REPAIRED]
+
+            if bikes_repaired.__len__() > 0:
+                curr_station = random.choice(self.stations)
+                bikes_repaired[0].current_location = curr_station.id
+                for station_state in self.station_states:
+                    if (
+                            station_state.date == start_date
+                            and station_state.station_id == curr_station.id
+                    ):
+                        station_state.free_bikes += 1
+                        break
 
         self.service_history.extend(local_service_histories)
         self.rental_history.extend(local_rental_histories)
+        self.repair_history.extend(local_repair_history)
 
     def _get_sorted_stations(self, reverse):
         return sorted(
