@@ -3,6 +3,7 @@ from config import Config
 import csv
 import os
 from faker import Faker
+import random
 
 
 class Simulator:
@@ -57,11 +58,10 @@ class Simulator:
             for cdr in self.generator.repair_history:
                 wr.writerow(cdr)
 
-
     def generate(self):
-        self.generator.generate_bikes()
+        self.generator.generate_bikes(self.generator.config.MAX_BIKES)
         self.generator.generate_stations()
-        self.generator.generate_clients()
+        self.generator.generate_clients(self.generator.config.MAX_CLIENTS)
         self.generator.init_station_states()
         self.generator.generate_work_history(self.names, self.surnames)
         self.generator.simulation()
@@ -69,6 +69,22 @@ class Simulator:
         self.save_to_file("T1-T2")
 
     def generate_next_date(self, start_date, end_date):
+
+        # Adding some stations
+        self.generator.config.MAX_STATIONS += 3
+        self.generator.add_stations(10, 20, number=3)
+
+        # Adding some clients
+        self.generator.config.MAX_CLIENTS += 3
+        self.generator.generate_clients(3)
+
+        # Adding some bikes
+        self.generator.config.MAX_BIKES += 3
+        self.generator.generate_bikes(3)
+
+        random.choice(self.generator.stations).capacity = 5
+
+        self.generator.revaluate_station_states()
 
         self.generator.config.MAX_RENTAL_ENTRIES = 1000
         self.generator.config.MAX_REPAIR_ENTRIES = 50

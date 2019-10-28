@@ -55,13 +55,34 @@ class Generator:
             self.simulate_hour(is_weekday, start_date=i, number_of_rented_bikes=math.ceil(self.config.RENTAL_ENTRIES_PER_DAY/24),
                                number_of_bikes_broken=math.ceil(self.config.REPAIR_ENTRIES_PER_DAY/48),
                                number_of_bikes_serviced=math.ceil(self.config.SERVICE_ENTRIES_PER_DAY))
-            # We will clone station states to new hour so we can update it during simulation
-            previous_hour_states = copy.deepcopy(self._get_previous_hour_states())
-            for x in previous_hour_states:
-                x.date = x.date + timedelta(hours=1)
-                x.id = x.id + self.config.MAX_STATIONS
-            self.station_states.extend(previous_hour_states)
-            pass
+
+            if i != self.config.END_DATE:
+                # We will clone station states to new hour so we can update it during simulation
+                previous_hour_states = copy.deepcopy(self._get_previous_hour_states())
+                for x in previous_hour_states:
+                    x.date = x.date + timedelta(hours=1)
+                    x.id = x.id + self.config.MAX_STATIONS
+                self.station_states.extend(previous_hour_states)
+
+    def revaluate_station_states(self):
+        previous_hour_states = copy.deepcopy(self._get_previous_hour_states())
+        for x in previous_hour_states:
+            x.date = x.date + timedelta(hours=1)
+            x.id = x.id + self.config.MAX_STATIONS
+
+        stations = self._get_stations(False)
+
+        for x in stations:
+            try:
+                station_state = self._get_last_station_state_by_station_id(x.id)
+            except:
+                station_state = StationState(previous_hour_states[1].date, x.id, 0)
+                station_state.id = previous_hour_states[-1].id + 1
+                previous_hour_states.append(station_state)
+
+
+        self.station_states.extend(previous_hour_states)
+
 
     def _get_number_of_weekend_days(self):
         number = 0
@@ -265,13 +286,15 @@ class Generator:
             reverse=reverse,
         )
 
-    def generate_clients(self):
+    def generate_clients(self, number):
         print("Generating clients")
-        self.clients = [Client(self.faker) for _ in range(self.config.MAX_CLIENTS)]
+        for i in range(number):
+            self.clients.append(Client(self.faker))
 
-    def generate_bikes(self):
+    def generate_bikes(self, number):
         print("Generating bikes")
-        self.bikes = [Bike(self.faker) for _ in range(self.config.MAX_BIKES)]
+        for i in range(number):
+            self.bikes.append(Bike(self.faker))
 
     def mark_some_stations_as_rarely_visited(self):
         # Some rarely visited stations
@@ -287,21 +310,22 @@ class Generator:
                 random.randint(0, self.config.MAX_STATIONS - 1)
             ].became_not_used = True
 
+    def add_stations(self, min_capacity, max_capacity, number):
+        for i in range (number):
+            self.stations.append(
+                Station(
+                    capacity=random.randint(min_capacity, max_capacity),
+                    radius=0.85,
+                    faker=self.faker,
+                ))
+
     def generate_stations(self, offset=0):
         print("Generating stations")
         avg_capacity = self.config.MAX_BIKES / self.config.MAX_STATIONS
         min_capacity = int(0.7 * avg_capacity)
         max_capacity = int(1.3 * avg_capacity)
 
-        self.stations = [
-            Station(
-                capacity=random.randint(min_capacity, max_capacity),
-                radius=0.85,
-                faker=self.faker,
-            )
-            for _ in range(self.config.MAX_STATIONS)
-        ]
-
+        self.add_stations(min_capacity, max_capacity, self.config.MAX_STATIONS)
         self.mark_some_stations_as_rarely_visited()
         self.mark_some_stations_as_not_used()
 
