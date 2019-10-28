@@ -47,6 +47,17 @@ class Simulator:
             for cdr in self.generator.rental_history:
                 wr.writerow(cdr)
 
+        with open(os.path.join(dir, 'historiapracy.csv'), 'w', newline='\n') as csv_file:
+            wr = csv.writer(csv_file, delimiter=',')
+            for cdr in self.generator.work_history:
+                wr.writerow(cdr)
+
+        with open(os.path.join(dir, 'historianaprawy.csv'), 'w', newline='\n') as csv_file:
+            wr = csv.writer(csv_file, delimiter=',')
+            for cdr in self.generator.repair_history:
+                wr.writerow(cdr)
+
+
     def generate(self):
         self.generator.generate_bikes()
         self.generator.generate_stations()

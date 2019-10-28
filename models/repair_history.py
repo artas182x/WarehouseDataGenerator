@@ -4,9 +4,9 @@ import random
 
 
 class State(Enum):
-    REPAIR = "repair"
-    REPAIRED = "repaired"
-    WONT_REPAIR = "wont_repair"
+    REPAIR = "W naprawie"
+    REPAIRED = "Naprawiony"
+    WONT_REPAIR = "Nie zostanie naprawiony"
 
 
 def _get_random_workshop_name():
@@ -22,3 +22,9 @@ class RepairHistory(BaseModel):
         self.date = date
         self.state = state
         self.bike_id = bike_id
+
+
+    def __iter__(self):
+        return iter([self.id, self.workshop_name, self.date, self.bike_id, self.state.value])
+
+
