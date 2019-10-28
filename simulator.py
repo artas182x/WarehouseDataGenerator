@@ -50,11 +50,13 @@ class Simulator:
 
         with open(os.path.join(dir, 'historiapracy.csv'), 'w', newline='\n') as csv_file:
             wr = csv.writer(csv_file, delimiter=',')
+            wr.writerow(["ID", "Imie", "Nazwisko", "Data rozpoczecia pracy", "Data zakonczenia pracy"])
             for cdr in self.generator.work_history:
                 wr.writerow(cdr)
 
         with open(os.path.join(dir, 'historianaprawy.csv'), 'w', newline='\n') as csv_file:
             wr = csv.writer(csv_file, delimiter=',')
+            wr.writerow(["ID", "Nazwa warsztatu", "Data", "Status", "Nr roweru"])
             for cdr in self.generator.repair_history:
                 wr.writerow(cdr)
 
