@@ -1,4 +1,5 @@
 import random
+import copy
 from datetime import timedelta
 
 from faker import Faker
@@ -40,39 +41,55 @@ class Generator:
 
     def simulation(self):
         print("Simulating business process")
-        self.simulate_hour(
-            is_workday=False,
-            start_date=self.config.START_DATE,
-            number_of_rented_bikes=30,
-            number_of_bikes_serviced=3,
-            number_of_bikes_broken=3,
-        )
 
-
-        # We will clone station states to new hour so we can update it during simulation
-        previous_hour_states = self._get_previous_hour_states()
-        for x in previous_hour_states:
-            x.date = x.date + timedelta(hours=1)
-        self.station_states.extend(previous_hour_states)
+        for i in datarange(self.config.START_DATE, self.config.END_DATE, diff=1):
+            is_weekday = i.weekday()<5
+            print("Simulating: " + i.__str__())
+            self.simulate_hour(is_weekday, start_date=i, number_of_rented_bikes=int(self.config.RENTAL_ENTRIES_PER_DAY/24),
+                               number_of_bikes_broken=int(self.config.REPAIR_ENTRIES_PER_DAY/48),
+                               number_of_bikes_serviced=int(self.config.SERVICE_ENTRIES_PER_DAY))
+            # We will clone station states to new hour so we can update it during simulation
+            previous_hour_states = copy.deepcopy(self._get_previous_hour_states())
+            for x in previous_hour_states:
+                x.date = x.date + timedelta(hours=1)
+            self.station_states.extend(previous_hour_states)
+            pass
 
     def _get_latest_hour(self):
         return self.station_states[-1].date
 
     def _get_previous_hour_states(self):
-        return [x for x in self.station_states if x.date == self._get_latest_hour()]
+        latest_hour = self._get_latest_hour()
+        return [x for x in self.station_states if x.date == latest_hour]
 
-    def _get_starting_stations_states(self):
-        return [
-            x
-            for x in self.station_states
-            if x.date == self._get_latest_hour() and x.free_bikes > 0
-        ]
+    def _get_starting_stations_states(self, filter_unused):
+        if filter_unused:
+            used_stations = [x for x in self.stations if not x.became_not_used]
+            return [
+                x
+                for x in self.station_states[-1 * self.config.MAX_STATIONS:]
+                if x.date == self._get_latest_hour() and x.free_bikes > 0 and self._station_exist_in_list(x.station_id,
+                                                                                                          used_stations)
+            ]
+
+        else:
+            return [
+                x
+                for x in self.station_states[-1 * self.config.MAX_STATIONS:]
+                if x.date == self._get_latest_hour() and x.free_bikes > 0
+            ]
+
+    def _get_stations(self, filter_unused):
+        if filter_unused:
+            return [x for x in self.stations if not x.became_not_used]
+        else:
+            return self.stations
 
     def _get_bikes_at_station(self, station_id):
         return [x for x in self.bikes if x.current_location == station_id]
 
     def _get_last_station_state_by_station_id(self, station_id):
-        return [x for x in self.station_states if x.station_id == station_id and x.date == self._get_latest_hour()][0]
+        return [x for x in self.station_states[-1 * self.config.MAX_STATIONS:] if x.station_id == station_id and x.date == self._get_latest_hour()][0]
 
     def _get_not_used_bikes(self):
         return [x for x in self.bikes if x.current_location is not None]
@@ -97,9 +114,9 @@ class Generator:
 
         for _ in range(number_of_rented_bikes):
             # this needs to be refreshed because station can have 0 free bikes
-            starting_stations_states = self._get_starting_stations_states()
+            starting_stations_states = self._get_starting_stations_states(filter_unused=self.config.STATIONS_THAT_BECAME_NOT_USED)
             start_station_state = random.choice(starting_stations_states)
-            end_station = random.choice(self.stations)
+            end_station = random.choice(self._get_stations(filter_unused=self.config.STATIONS_THAT_BECAME_NOT_USED))
             bike = random.choice(
                 self._get_bikes_at_station(start_station_state.station_id)
             )
@@ -170,7 +187,7 @@ class Generator:
         for rental in local_rental_histories:
             station_state = [
                 x
-                for x in self.station_states
+                for x in self.station_states[-1 * self.config.MAX_STATIONS:]
                 if x.date == self._get_latest_hour()
                     and x.station_id == rental.end_station_id
             ][0]
@@ -181,7 +198,7 @@ class Generator:
         for rental in local_service_histories:
             station_state = [
                 x
-                for x in self.station_states
+                for x in self.station_states[-1 * self.config.MAX_STATIONS:]
                 if x.date == self._get_latest_hour()
                     and x.station_id == rental.end_station_id
             ][0]
@@ -208,10 +225,10 @@ class Generator:
         self.repair_history.extend(local_repair_history)
 
     def _get_used_by_employees_station_states(self, reverse):
-        used_stations = [x for x in self.stations if x.rarely_visited]
+        used_stations = [x for x in self.stations if not x.rarely_visited]
 
         return sorted(
-            [x for x in self.station_states if x.date == self._get_latest_hour() and
+            [x for x in self.station_states[-1 * self.config.MAX_STATIONS:] if x.date == self._get_latest_hour() and
              self._station_exist_in_list(x.station_id, used_stations)],
             key=lambda z: z.free_bikes,
             reverse=reverse,
@@ -226,7 +243,7 @@ class Generator:
 
     def _get_sorted_stations(self, reverse):
         return sorted(
-            [x for x in self.station_states if x.date == self._get_latest_hour()],
+            [x for x in self.station_states[-1 * self.config.MAX_STATIONS:] if x.date == self._get_latest_hour()],
             key=lambda z: z.free_bikes,
             reverse=reverse,
         )

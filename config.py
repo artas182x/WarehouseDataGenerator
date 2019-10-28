@@ -17,7 +17,7 @@ class Config:
         self.END_DATE = datetime.combine(end_date, datetime.min.time())
 
         self.BIKE_REPAIR_TIME = 55
-        self.STATIONS_THAT_BECAME_NOT_USED = True
+        self.STATIONS_THAT_BECAME_NOT_USED = False
 
         self.DAYS = abs((end_date - start_date).days)
         self.STATION_STATES_ENTRIES = self.DAYS * 24

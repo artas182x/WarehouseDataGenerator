@@ -22,3 +22,5 @@ class Station(BaseModel):
         self.rarely_visited = rarely_visited
         self.overloaded = overloaded
         self.workplace = workplace
+        self.became_not_used = False
+

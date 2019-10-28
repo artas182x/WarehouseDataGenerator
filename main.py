@@ -4,7 +4,7 @@ from config import Config
 from simulator import Simulator
 
 # TODO What we need:
-# At least one station which became not used from T2 to T3 comparing to T1 to T2 time.
+# At least one station which became not used from T2 to T3. DONE: STATIONS_THAT_BECAME_NOT_USED
 # Some stations should be overloaded
 # Bike repair times should be different in T1 and T2 DONE: BIKE_REPAIR_TIME
 # Broken bikes number should be different in T1 and T2 DONE: MAX_REPAIR_ENTRIES
