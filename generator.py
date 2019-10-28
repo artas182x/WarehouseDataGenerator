@@ -1,5 +1,6 @@
 import random
 import copy
+import math
 from datetime import timedelta
 
 from faker import Faker
@@ -24,9 +25,9 @@ def datarange(start_date, end_date, diff=24):
 
 
 class Generator:
-    def __init__(self, config):
+    def __init__(self, config, faker):
         self.config = config
-        self.faker = Faker("pl_PL")
+        self.faker = faker
 
         self.clients = []
         self.bikes = []
@@ -51,13 +52,14 @@ class Generator:
         for i in datarange(self.config.START_DATE, self.config.END_DATE, diff=1):
             is_weekday = i.weekday() < 5
             print("Simulating: " + i.__str__())
-            self.simulate_hour(is_weekday, start_date=i, number_of_rented_bikes=int(self.config.RENTAL_ENTRIES_PER_DAY/24),
-                               number_of_bikes_broken=int(self.config.REPAIR_ENTRIES_PER_DAY/48),
-                               number_of_bikes_serviced=int(self.config.SERVICE_ENTRIES_PER_DAY))
+            self.simulate_hour(is_weekday, start_date=i, number_of_rented_bikes=math.ceil(self.config.RENTAL_ENTRIES_PER_DAY/24),
+                               number_of_bikes_broken=math.ceil(self.config.REPAIR_ENTRIES_PER_DAY/48),
+                               number_of_bikes_serviced=math.ceil(self.config.SERVICE_ENTRIES_PER_DAY))
             # We will clone station states to new hour so we can update it during simulation
             previous_hour_states = copy.deepcopy(self._get_previous_hour_states())
             for x in previous_hour_states:
                 x.date = x.date + timedelta(hours=1)
+                x.id = x.id + self.config.MAX_STATIONS
             self.station_states.extend(previous_hour_states)
             pass
 
@@ -69,7 +71,6 @@ class Generator:
 
         return number
 
-
     def _get_latest_hour(self):
         return self.station_states[-1].date
 
@@ -80,14 +81,15 @@ class Generator:
     def _get_starting_stations_states(self, filter_unused):
         if filter_unused:
             used_stations = [x for x in self.stations if not x.became_not_used]
+
             return [
                 x
                 for x in self.station_states[-1 * self.config.MAX_STATIONS:]
                 if x.date == self._get_latest_hour() and x.free_bikes > 0 and self._station_exist_in_list(x.station_id,
                                                                                                           used_stations)
             ]
-
         else:
+
             return [
                 x
                 for x in self.station_states[-1 * self.config.MAX_STATIONS:]
@@ -146,7 +148,7 @@ class Generator:
             )
             rental_history_entry = RentalHistory(
                 client.id,
-                start_station_state.id,
+                start_station_state.station_id,
                 end_station.id,
                 bike.id,
                 rental_start_date,
@@ -229,7 +231,7 @@ class Generator:
                 bikes_repaired[0].current_location = curr_station.id
                 for station_state in self.station_states:
                     if (
-                            station_state.date == start_date
+                            station_state.date == self._get_latest_hour()
                             and station_state.station_id == curr_station.id
                     ):
                         station_state.free_bikes += 1
@@ -313,21 +315,13 @@ class Generator:
                 True if random.randint(1, 10) < 3 else False
             )
 
-    def generate_work_history(self):
+    def generate_work_history(self, names, surnames):
         print("Generating work history")
-        workers = 10
-
-        names = []
-        surnames = []
-
-        for i in range(workers):
-            names.append(self.faker.first_name())
-            surnames.append(self.faker.last_name())
 
         for index, single_date in enumerate(
             datarange(self.config.START_DATE, self.config.END_DATE, diff=7)
         ):
-            rand_index = random.randrange(workers)
+            rand_index = random.randrange(len(names))
             self.work_history.append(
                 WorkHistory(
                     id=index,

@@ -24,5 +24,6 @@ if __name__ == "__main__":
     config1 = Config(start_date=T1, end_date=T2)
 
     simulator1 = Simulator(config1)
-    simulator1.save_to_file()
+    simulator1.generate()
+    simulator1.generate_next_date(T2, T3)
     pass
