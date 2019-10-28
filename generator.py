@@ -213,7 +213,7 @@ class Generator:
 
             repair_history_entry_finish = RepairHistory(self.last_repair_history_index, bike.id, workshop_name,
                                                         repair_finish_state, repair_history_entry.date +
-                                                        timedelta(minutes=random.randint(40, self.config.BIKE_REPAIR_TIME)))
+                                                        timedelta(minutes=random.randint(40, self.config.BIKE_REPAIR_TIME)), repair_history_entry.repair_id)
 
             self.last_repair_history_index += 1
 
