@@ -3,6 +3,14 @@ from enum import Enum
 
 from models.base import BaseModel
 
+COUNT = 0
+
+
+def increment():
+    global COUNT
+    COUNT = COUNT+1
+    return COUNT
+
 
 class Gender(Enum):
     FEMALE = "k"
@@ -19,6 +27,9 @@ class Client(BaseModel):
         self.faker = faker
 
         super().__init__()
+
+        self.id = increment()
+
         self.gender = Gender.get_gender()
         self.name = self._generate_name()
         self.surname = self._generate_surname()

@@ -1,5 +1,12 @@
 from models.base import BaseModel
 
+COUNT = 0
+
+
+def increment():
+    global COUNT
+    COUNT = COUNT+1
+    return COUNT
 
 class Station(BaseModel):
     def __init__(
@@ -13,6 +20,7 @@ class Station(BaseModel):
     ):
         super().__init__()
         self.faker = faker
+        self.id = increment()
         self.name = self.faker.street_address()
         self.capacity = capacity
         self.latitude = self.faker.coordinate(center=54.324846, radius=radius)
