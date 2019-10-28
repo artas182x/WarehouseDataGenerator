@@ -6,12 +6,12 @@ class Config:
     # TODO: Load from JSON or whatever
 
     def __init__(self, *, start_date, end_date):
-        self.MAX_CLIENTS = 10000
+        self.MAX_CLIENTS = 1000
         self.MAX_BIKES = 1000
         self.MAX_STATIONS = 30
-        self.MAX_RENTAL_ENTRIES = 20000
-        self.MAX_REPAIR_ENTRIES = 1000
-        self.MAX_SERVICE_ENTRIES = 7000
+        self.MAX_RENTAL_ENTRIES = 1000
+        self.MAX_REPAIR_ENTRIES = 50
+        self.MAX_SERVICE_ENTRIES = 500
         self.MAX_WORK_HISTORY_ENTRIES = 2000
         self.START_DATE = datetime.combine(start_date, datetime.min.time())
         self.END_DATE = datetime.combine(end_date, datetime.min.time())

@@ -42,8 +42,14 @@ class Generator:
     def simulation(self):
         print("Simulating business process")
 
+        weekend_days = self._get_number_of_weekend_days()
+        days = (self.config.END_DATE-self.config.START_DATE).days
+        work_days = days-weekend_days
+
+        print("Will be additional " + (days*24*self.config.MAX_BIKES).__str__() + " records")
+
         for i in datarange(self.config.START_DATE, self.config.END_DATE, diff=1):
-            is_weekday = i.weekday()<5
+            is_weekday = i.weekday() < 5
             print("Simulating: " + i.__str__())
             self.simulate_hour(is_weekday, start_date=i, number_of_rented_bikes=int(self.config.RENTAL_ENTRIES_PER_DAY/24),
                                number_of_bikes_broken=int(self.config.REPAIR_ENTRIES_PER_DAY/48),
@@ -54,6 +60,15 @@ class Generator:
                 x.date = x.date + timedelta(hours=1)
             self.station_states.extend(previous_hour_states)
             pass
+
+    def _get_number_of_weekend_days(self):
+        number = 0
+        for i in datarange(self.config.START_DATE, self.config.END_DATE, diff=24):
+            if i.weekday() >= 5:
+                number += 1
+
+        return number
+
 
     def _get_latest_hour(self):
         return self.station_states[-1].date

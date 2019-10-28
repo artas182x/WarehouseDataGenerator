@@ -1,9 +1,17 @@
 import uuid
 
+COUNT = 0
+
+
+def increment():
+    global COUNT
+    COUNT = COUNT+1
+    return COUNT
+
 
 class BaseModel:
     def __init__(self):
-        self.id = uuid.uuid4()
+        self.id = increment()
 
     def __iter__(self):
         dictionary = self.__dict__

@@ -24,3 +24,6 @@ class Station(BaseModel):
         self.workplace = workplace
         self.became_not_used = False
 
+    def __iter__(self):
+        return iter([self.id, self.name, self.latitude, self.longitude, self.capacity])
+

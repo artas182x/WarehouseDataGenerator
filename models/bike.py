@@ -6,3 +6,6 @@ class Bike(BaseModel):
         super().__init__()
         self.friendly_name = faker.first_name()
         self.current_location = None
+
+    def __iter__(self):
+        return iter([self.id, self.friendly_name])

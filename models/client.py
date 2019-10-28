@@ -39,3 +39,6 @@ class Client(BaseModel):
             if self.gender == Gender.MALE
             else self.faker.last_name_female()
         )
+
+    def __iter__(self):
+        return iter([self.name, self.surname, self.gender.value, self.birthday, self.id])

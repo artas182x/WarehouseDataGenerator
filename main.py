@@ -18,10 +18,11 @@ from simulator import Simulator
 
 if __name__ == "__main__":
     T1 = date(2017, 12, 5)
-    T2 = date(2018, 11, 5)
-    T3 = date(2019, 10, 15)
+    T2 = date(2017, 12, 15)
+    T3 = date(2018, 2, 5)
 
     config1 = Config(start_date=T1, end_date=T2)
 
     simulator1 = Simulator(config1)
+    simulator1.save_to_file()
     pass
