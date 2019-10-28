@@ -13,8 +13,8 @@ from simulator import Simulator
 # At night all stations should have at least one bike
 # At weekends people should not rent bikes from workplaces
 # On work days between 12:00-14:00 station where are workplaces should be overloaded
-# On time T2-T3 we should add some stations (requirement from instruction)
-# On time T2-T3 we should add some bikes (requirement from instruction)
+# On time T2-T3 we should add some stations (requirement from instruction) DONE
+# On time T2-T3 we should add some bikes (requirement from instruction) DONE
 # At least one station should be rarely visited by employee DONE
 
 config1 = None
@@ -34,7 +34,7 @@ def generate_t1_t2():
     config1.MAX_CLIENTS = 1000
     config1.MAX_BIKES = 1000
     config1.MAX_STATIONS = 30
-    config1.MAX_RENTAL_ENTRIES = 1000
+    config1.MAX_RENTAL_ENTRIES = 10000
     config1.MAX_REPAIR_ENTRIES = 50
     config1.MAX_SERVICE_ENTRIES = 500
     config1.MAX_WORK_HISTORY_ENTRIES = 2000
