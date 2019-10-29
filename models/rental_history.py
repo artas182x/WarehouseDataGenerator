@@ -5,8 +5,9 @@ COUNT = 0
 
 def increment():
     global COUNT
-    COUNT = COUNT+1
+    COUNT = COUNT + 1
     return COUNT
+
 
 class RentalHistory(BaseModel):
     def __init__(

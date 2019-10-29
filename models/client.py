@@ -8,7 +8,7 @@ COUNT = 0
 
 def increment():
     global COUNT
-    COUNT = COUNT+1
+    COUNT = COUNT + 1
     return COUNT
 
 
@@ -52,4 +52,6 @@ class Client(BaseModel):
         )
 
     def __iter__(self):
-        return iter([self.name, self.surname, self.gender.value, self.birthday, self.id])
+        return iter(
+            [self.name, self.surname, self.gender.value, self.birthday, self.id]
+        )

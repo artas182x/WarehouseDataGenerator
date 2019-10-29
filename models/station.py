@@ -5,18 +5,19 @@ COUNT = 0
 
 def increment():
     global COUNT
-    COUNT = COUNT+1
+    COUNT = COUNT + 1
     return COUNT
+
 
 class Station(BaseModel):
     def __init__(
-            self,
-            capacity,
-            radius,
-            faker,
-            rarely_visited=False,
-            overloaded=False,
-            workplace=False,
+        self,
+        capacity,
+        radius,
+        faker,
+        rarely_visited=False,
+        overloaded=False,
+        workplace=False,
     ):
         super().__init__()
         self.faker = faker
@@ -34,4 +35,3 @@ class Station(BaseModel):
 
     def __iter__(self):
         return iter([self.id, self.name, self.latitude, self.longitude, self.capacity])
-

@@ -18,45 +18,72 @@ class Simulator:
             self.surnames.append(self.faker.last_name())
 
     def save_to_file(self, dir):
-        with open(os.path.join(dir, 'klienci.bulk'), 'w', newline='\n') as csv_file:
-            wr = csv.writer(csv_file, delimiter='|')
+        if not os.path.exists(dir):
+            os.mkdir(os.path.join('.', dir))
+        with open(os.path.join(dir, "klienci.bulk"), "w", newline="\n", encoding='utf-8') as csv_file:
+            wr = csv.writer(csv_file, delimiter="|")
             for cdr in self.generator.clients:
                 wr.writerow(cdr)
 
-        with open(os.path.join(dir, 'rowery.bulk'), 'w', newline='\n') as csv_file:
-            wr = csv.writer(csv_file, delimiter='|')
+        with open(os.path.join(dir, "rowery.bulk"), "w", newline="\n", encoding='utf-8') as csv_file:
+            wr = csv.writer(csv_file, delimiter="|")
             for cdr in self.generator.bikes:
                 wr.writerow(cdr)
 
-        with open(os.path.join(dir, 'listastacji.bulk'), 'w', newline='\n') as csv_file:
-            wr = csv.writer(csv_file, delimiter='|')
+        with open(os.path.join(dir, "listastacji.bulk"), "w", newline="\n", encoding='utf-8') as csv_file:
+            wr = csv.writer(csv_file, delimiter="|")
             for cdr in self.generator.stations:
                 wr.writerow(cdr)
 
-        with open(os.path.join(dir, 'stanstacji.bulk'), 'w', newline='\n') as csv_file:
-            wr = csv.writer(csv_file, delimiter='|')
+        with open(os.path.join(dir, "stanstacji.bulk"), "w", newline="\n", encoding='utf-8') as csv_file:
+            wr = csv.writer(csv_file, delimiter="|")
             for cdr in self.generator.station_states:
                 wr.writerow(cdr)
 
-        with open(os.path.join(dir, 'historiaserwisowania.bulk'), 'w', newline='\n') as csv_file:
-            wr = csv.writer(csv_file, delimiter='|')
+        with open(
+            os.path.join(dir, "historiaserwisowania.bulk"), "w", newline="\n", encoding='utf-8'
+        ) as csv_file:
+            wr = csv.writer(csv_file, delimiter="|")
             for cdr in self.generator.service_history:
                 wr.writerow(cdr)
 
-        with open(os.path.join(dir, 'historiawypozyczen.bulk'), 'w', newline='\n') as csv_file:
-            wr = csv.writer(csv_file, delimiter='|')
+        with open(
+            os.path.join(dir, "historiawypozyczen.bulk"), "w", newline="\n", encoding='utf-8'
+        ) as csv_file:
+            wr = csv.writer(csv_file, delimiter="|")
             for cdr in self.generator.rental_history:
                 wr.writerow(cdr)
 
-        with open(os.path.join(dir, 'historiapracy.csv'), 'w', newline='\n') as csv_file:
-            wr = csv.writer(csv_file, delimiter=',')
-            wr.writerow(["ID", "Imie", "Nazwisko", "Data rozpoczecia pracy", "Data zakonczenia pracy"])
+        with open(
+            os.path.join(dir, "historiapracy.csv"), "w", newline="\n", encoding='utf-8'
+        ) as csv_file:
+            wr = csv.writer(csv_file, delimiter=",")
+            wr.writerow(
+                [
+                    "ID",
+                    "Imie",
+                    "Nazwisko",
+                    "Data rozpoczecia pracy",
+                    "Data zakonczenia pracy",
+                ]
+            )
             for cdr in self.generator.work_history:
                 wr.writerow(cdr)
 
-        with open(os.path.join(dir, 'historianaprawy.csv'), 'w', newline='\n') as csv_file:
-            wr = csv.writer(csv_file, delimiter=',')
-            wr.writerow(["ID", "Nazwa warsztatu", "Data", "Status", "Nr roweru", "ID Procesu naprawy"])
+        with open(
+            os.path.join(dir, "historianaprawy.csv"), "w", newline="\n", encoding='utf-8'
+        ) as csv_file:
+            wr = csv.writer(csv_file, delimiter=",")
+            wr.writerow(
+                [
+                    "ID",
+                    "Nazwa warsztatu",
+                    "Data",
+                    "Status",
+                    "Nr roweru",
+                    "ID Procesu naprawy",
+                ]
+            )
             for cdr in self.generator.repair_history:
                 wr.writerow(cdr)
 
@@ -72,16 +99,13 @@ class Simulator:
         self.save_to_file("T1-T2")
 
     def generate_next_date(self, start_date, end_date):
-        self.generator.revaluate_station_states()
+        self.generator.reevaluate_station_states()
         self.generator.config.recalculate(start_date, end_date)
 
         self.generator.generate_work_history(self.names, self.surnames)
         self.generator.simulation()
 
         self.save_to_file("T2-T3")
-
-
-
 
 
 # def simulate_day(self, day, is_workday):

@@ -8,7 +8,7 @@ COUNT = 0
 
 def increment():
     global COUNT
-    COUNT = COUNT+1
+    COUNT = COUNT + 1
     return COUNT
 
 
@@ -23,7 +23,6 @@ def _get_random_workshop_name():
 
 
 class RepairHistory(BaseModel):
-
     def __init__(self, id, bike_id, workshop_name, state: State, date, repair_id=-1):
         super().__init__()
         self.id = id
@@ -37,6 +36,13 @@ class RepairHistory(BaseModel):
             self.repair_id = increment()
 
     def __iter__(self):
-        return iter([self.id, self.workshop_name, self.date, self.bike_id, self.state.value, self.repair_id])
-
-
+        return iter(
+            [
+                self.id,
+                self.workshop_name,
+                self.date,
+                self.bike_id,
+                self.state.value,
+                self.repair_id,
+            ]
+        )
